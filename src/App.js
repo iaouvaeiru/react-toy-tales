@@ -9,7 +9,8 @@ import ToyContainer from './components/ToyContainer'
 class App extends React.Component{
 
   state = {
-    display: false
+    display: false,
+    toyArr: []
   }
 
   handleClick = () => {
@@ -19,20 +20,55 @@ class App extends React.Component{
     })
   }
 
+  componentDidMount = async () => {
+    try {
+      const promise = await fetch('http://localhost:3000/toys')
+      const json = await promise.json()
+      this.setState({
+        toyArr: json
+      })
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  postToy = (newToy) => {
+    let newToyArr = [...this.state.toyArr, newToy]
+    this.setState({
+      toyArr: newToyArr
+    })
+  }
+  updateLikes = (updatedToy) => {
+    this.state.toyArr.map(toy => {
+      if(toy.id === updatedToy.id){
+        return updatedToy
+      } else {
+        return toy
+      }
+    })
+  }
+  deleteToy = (deletedToyID) => {
+    let newToyArr = this.state.toyArr.filter(toy => {
+      return toy.id !== deletedToyID
+      })
+      this.setState({
+        toyArr: newToyArr
+      })
+  }
+
   render(){
     return (
       <>
         <Header/>
         { this.state.display
             ?
-          <ToyForm/>
+          <ToyForm postToy={this.postToy} handleClick={this.handleClick}/>
             :
           null
         }
         <div className="buttonContainer">
           <button onClick={this.handleClick}> Add a Toy </button>
         </div>
-        <ToyContainer/>
+        <ToyContainer toyArr={this.state.toyArr} updateLikes={this.updateLikes} deleteToy={this.deleteToy}/>
       </>
     );
   }
